@@ -1,5 +1,5 @@
 (() => {
-  const VER = 11;
+  const VER = 12;
   const PTABLE_HOST_ID = 'agy-ptable-host';
   const SUB_HOST_ID = 'agy-ptable-sub-host';
   const FX_HOST_ID = 'agy-ptable-fx-host';
