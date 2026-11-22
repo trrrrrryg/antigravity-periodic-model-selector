@@ -1,7 +1,8 @@
 (() => {
-  const VER = 8;
+  const VER = 9;
   const PTABLE_HOST_ID = 'agy-ptable-host';
   const SUB_HOST_ID = 'agy-ptable-sub-host';
+  const UPD_HOST_ID = 'agy-ptable-upd-host';
   const FX_HOST_ID = 'agy-ptable-fx-host';
   const MENU_CSS_ID = 'agy-ptable-menu-override-css';
 
@@ -134,6 +135,11 @@
 
   let runtimeConfig = { tierOverride: 'auto', particleScale: 1 };
   let pendingConfigPatch = null;
+  let updateInfo = null;
+  let pendingUpdateAction = null;
+  let activeUpdBtn = null;
+  let updDocClickHandler = null;
+  let updKeyHandler = null;
   let lastTelemetry = null;
   let customAliasMap = new Map();
   let activeToastTimer = null;
@@ -750,6 +756,12 @@
     }
     .pt-badge.free { background: rgba(148, 163, 184, 0.16); color: #CBD5E1; }
     .pt-badge.ultra { background: rgba(168, 85, 247, 0.22); color: #E9D5FF; }
+    .pt-topbar-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
     .pt-legend {
       display: flex;
       align-items: center;
@@ -757,6 +769,65 @@
       font-size: 10.5px;
       color: #8E909A;
       white-space: nowrap;
+    }
+    .pt-upd-btn {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.58);
+      background: rgba(56, 189, 248, 0.16);
+      color: #BAE6FD;
+      font-family: inherit;
+      font-size: 10.5px;
+      font-weight: 600;
+      line-height: 1.35;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 140ms ease, border-color 140ms ease, transform 120ms ease, box-shadow 140ms ease;
+    }
+    .pt-upd-btn.visible {
+      display: inline-flex;
+    }
+    .pt-upd-btn:hover {
+      background: rgba(56, 189, 248, 0.26);
+      border-color: rgba(125, 211, 252, 0.9);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.28);
+      transform: translateY(-0.5px);
+    }
+    .pt-upd-btn.updating {
+      border-color: rgba(249, 115, 22, 0.65);
+      background: rgba(249, 115, 22, 0.18);
+      color: #FED7AA;
+    }
+    .pt-upd-btn.updated {
+      border-color: rgba(16, 185, 129, 0.65);
+      background: rgba(16, 185, 129, 0.18);
+      color: #A7F3D0;
+    }
+    .pt-upd-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #38BDF8;
+      box-shadow: 0 0 8px #38BDF8;
+      animation: pt-upd-pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes pt-upd-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.75); }
+    }
+    .pt-upd-spin {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(254, 215, 170, 0.35);
+      border-top-color: #FB923C;
+      animation: pt-upd-rot 700ms linear infinite;
+    }
+    @keyframes pt-upd-rot {
+      to { transform: rotate(360deg); }
     }
     .pt-grid {
       display: grid;
@@ -1133,6 +1204,379 @@
     }
   }
 
+  const UPD_CSS = `
+    :host {
+      all: initial;
+      position: fixed;
+      z-index: 2147483646;
+      pointer-events: none;
+      inset: 0;
+      font-family: "Google Sans Flex", "Google Sans", system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    .pt-upd-pop {
+      position: fixed;
+      pointer-events: auto;
+      width: 286px;
+      background: #17181E;
+      border: 1px solid rgba(56, 189, 248, 0.48);
+      border-radius: 12px;
+      padding: 12px;
+      color: #EAEBF1;
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.78), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+      display: none;
+      flex-direction: column;
+      gap: 9px;
+      animation: pt-upd-in 150ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    @keyframes pt-upd-in {
+      from { opacity: 0; transform: translateY(-4px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .pt-upd-pop.open { display: flex; }
+    .pt-upd-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .pt-upd-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #F4F6FA;
+    }
+    .pt-upd-tag {
+      padding: 1px 6px;
+      border-radius: 5px;
+      font-size: 10.5px;
+      font-weight: 700;
+      background: rgba(56, 189, 248, 0.20);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      color: #BAE6FD;
+    }
+    .pt-upd-tag.ok {
+      background: rgba(16, 185, 129, 0.20);
+      border-color: rgba(16, 185, 129, 0.48);
+      color: #A7F3D0;
+    }
+    .pt-upd-close {
+      background: transparent;
+      border: none;
+      color: #8E909A;
+      font-size: 14px;
+      line-height: 1;
+      padding: 2px 4px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .pt-upd-close:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #EAEBF1;
+    }
+    .pt-upd-ver {
+      font-size: 11px;
+      color: #9CA0AC;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .pt-upd-notes {
+      background: #111217;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 8px 9px;
+      font-size: 11px;
+      line-height: 1.45;
+      color: #C7CAD4;
+      white-space: pre-wrap;
+      max-height: 96px;
+      overflow-y: auto;
+    }
+    .pt-upd-progress {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgba(249, 115, 22, 0.14);
+      border: 1px solid rgba(249, 115, 22, 0.42);
+      color: #FED7AA;
+      font-size: 11.5px;
+      line-height: 1.4;
+    }
+    .pt-upd-progress.ok {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.45);
+      color: #A7F3D0;
+    }
+    .pt-upd-err {
+      padding: 7px 9px;
+      border-radius: 8px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.42);
+      color: #FECACA;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+    .pt-upd-spinner {
+      width: 12px;
+      height: 12px;
+      flex: 0 0 12px;
+      border-radius: 50%;
+      border: 2px solid rgba(254, 215, 170, 0.3);
+      border-top-color: #FB923C;
+      animation: pt-upd-spin-k 700ms linear infinite;
+    }
+    @keyframes pt-upd-spin-k {
+      to { transform: rotate(360deg); }
+    }
+    .pt-upd-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 7px;
+      margin-top: 2px;
+    }
+    .pt-upd-act {
+      border-radius: 7px;
+      padding: 6px 11px;
+      font-size: 11.5px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      background: rgba(255, 255, 255, 0.05);
+      color: #D2D5DF;
+      transition: background-color 130ms ease, border-color 130ms ease, transform 100ms ease;
+    }
+    .pt-upd-act:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.11);
+      color: #FFFFFF;
+    }
+    .pt-upd-act.primary {
+      background: linear-gradient(135deg, #2563EB, #0284C7);
+      border-color: rgba(125, 211, 252, 0.65);
+      color: #FFFFFF;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+    .pt-upd-act.primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, #3B82F6, #0EA5E9);
+    }
+    .pt-upd-act:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  `;
+
+  function getUpdatePortal() {
+    let updHost = document.getElementById(UPD_HOST_ID);
+    if (!updHost) {
+      updHost = document.createElement('div');
+      updHost.id = UPD_HOST_ID;
+      document.body.appendChild(updHost);
+    }
+    const usr = updHost.shadowRoot || updHost.attachShadow({ mode: 'open' });
+    let pop = usr.querySelector('.pt-upd-pop');
+    if (!pop) {
+      usr.innerHTML = '';
+      const st = document.createElement('style');
+      st.textContent = UPD_CSS;
+      usr.appendChild(st);
+      pop = document.createElement('div');
+      pop.className = 'pt-upd-pop';
+      for (const evt of ['pointerdown', 'mousedown', 'mouseup', 'click']) {
+        pop.addEventListener(evt, (ev) => ev.stopPropagation());
+      }
+      usr.appendChild(pop);
+    }
+    return { updHost, pop };
+  }
+
+  function isUpdatePopoverOpen() {
+    const pop = document.getElementById(UPD_HOST_ID)?.shadowRoot?.querySelector('.pt-upd-pop');
+    return !!pop?.classList.contains('open');
+  }
+
+  function hideUpdatePortal() {
+    const pop = document.getElementById(UPD_HOST_ID)?.shadowRoot?.querySelector('.pt-upd-pop');
+    if (pop) pop.classList.remove('open');
+  }
+
+  function renderUpdatePopover(pop) {
+    const u = updateInfo || {};
+    const isUpdating = u.status === 'updating';
+    const isUpdated = u.status === 'updated' || (!!u.justUpdatedTo && !u.hasUpdate);
+    const isError = u.status === 'error';
+
+    pop.innerHTML = '';
+
+    const hdr = document.createElement('div');
+    hdr.className = 'pt-upd-hdr';
+    const title = document.createElement('div');
+    title.className = 'pt-upd-title';
+    const tagCls = isUpdated ? 'pt-upd-tag ok' : 'pt-upd-tag';
+    const tagTxt = isUpdated
+      ? `v${u.currentVersion || u.justUpdatedTo}`
+      : `v${u.latestVersion || ''}`;
+    title.innerHTML = `<span>${isUpdated ? '插件更新完成' : '发现新版本'}</span><span class="${tagCls}">${tagTxt}</span>`;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'pt-upd-close';
+    closeBtn.textContent = '×';
+    closeBtn.title = '关闭';
+    closeBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      hideUpdatePortal();
+    };
+    hdr.appendChild(title);
+    hdr.appendChild(closeBtn);
+    pop.appendChild(hdr);
+
+    const verRow = document.createElement('div');
+    verRow.className = 'pt-upd-ver';
+    verRow.innerHTML = isUpdated
+      ? `<span>已从 v${u.justUpdatedFrom || '?'} 升级至 v${u.currentVersion || u.justUpdatedTo}</span><span>GitHub</span>`
+      : `<span>当前 v${u.currentVersion || '1.0.0'} → 最新 v${u.latestVersion || '?'}</span><span>GitHub</span>`;
+    pop.appendChild(verRow);
+
+    if (isUpdating) {
+      const prog = document.createElement('div');
+      prog.className = 'pt-upd-progress';
+      prog.innerHTML = `<span class="pt-upd-spinner"></span><span>${u.progressText || '正在下载并应用更新...'}</span>`;
+      pop.appendChild(prog);
+    } else if (isUpdated) {
+      const okBox = document.createElement('div');
+      okBox.className = 'pt-upd-progress ok';
+      okBox.textContent = u.progressText || `✓ 已更新至 v${u.currentVersion || u.justUpdatedTo}，新版本已就绪`;
+      pop.appendChild(okBox);
+    } else {
+      if (u.releaseNotes) {
+        const notes = document.createElement('div');
+        notes.className = 'pt-upd-notes';
+        notes.textContent = u.releaseNotes;
+        pop.appendChild(notes);
+      }
+      if (isError && u.error) {
+        const errBox = document.createElement('div');
+        errBox.className = 'pt-upd-err';
+        errBox.textContent = `更新失败：${u.error}`;
+        pop.appendChild(errBox);
+      }
+    }
+
+    const actions = document.createElement('div');
+    actions.className = 'pt-upd-actions';
+
+    if (isUpdated) {
+      const doneBtn = document.createElement('button');
+      doneBtn.type = 'button';
+      doneBtn.className = 'pt-upd-act primary';
+      doneBtn.textContent = '知道了';
+      doneBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        hideUpdatePortal();
+      };
+      actions.appendChild(doneBtn);
+    } else {
+      const laterBtn = document.createElement('button');
+      laterBtn.type = 'button';
+      laterBtn.className = 'pt-upd-act';
+      laterBtn.textContent = '后续再更新';
+      laterBtn.disabled = isUpdating;
+      laterBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        pendingUpdateAction = 'defer';
+        if (updateInfo) updateInfo = { ...updateInfo, deferred: true };
+        hideUpdatePortal();
+        syncUpdateUi();
+      };
+
+      const nowBtn = document.createElement('button');
+      nowBtn.type = 'button';
+      nowBtn.className = 'pt-upd-act primary';
+      nowBtn.textContent = isUpdating ? '更新中...' : (isError ? '重试更新' : '直接更新');
+      nowBtn.disabled = isUpdating;
+      nowBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        pendingUpdateAction = 'apply';
+        updateInfo = {
+          ...(updateInfo || {}),
+          status: 'updating',
+          error: null,
+          progressText: '正在启动更新任务...',
+        };
+        syncUpdateUi();
+      };
+
+      actions.appendChild(laterBtn);
+      actions.appendChild(nowBtn);
+    }
+    pop.appendChild(actions);
+  }
+
+  function openUpdatePopover(anchorBtn) {
+    hideSubPortal();
+    const { pop } = getUpdatePortal();
+    renderUpdatePopover(pop);
+    pop.classList.remove('open');
+    void pop.offsetWidth;
+    pop.classList.add('open');
+
+    const br = anchorBtn.getBoundingClientRect();
+    const pw = 286;
+    const ph = pop.offsetHeight || 180;
+    let left = br.right - pw;
+    if (left < 10) left = 10;
+    if (left + pw > window.innerWidth - 10) left = window.innerWidth - pw - 10;
+    let top = br.bottom + 8;
+    if (top + ph > window.innerHeight - 10) {
+      top = Math.max(10, br.top - ph - 8);
+    }
+    pop.style.left = `${Math.round(left)}px`;
+    pop.style.top = `${Math.round(top)}px`;
+  }
+
+  function syncUpdateUi() {
+    const u = updateInfo || {};
+    const btn = activeUpdBtn;
+    if (btn && btn.isConnected) {
+      const isUpdating = u.status === 'updating';
+      const isUpdated = u.status === 'updated' || (!!u.justUpdatedTo && !u.hasUpdate);
+      const showAvailable = !!u.hasUpdate && !u.deferred;
+
+      btn.classList.remove('visible', 'updating', 'updated');
+      if (isUpdating) {
+        btn.classList.add('visible', 'updating');
+        btn.innerHTML = `<span class="pt-upd-spin"></span><span>更新中...</span>`;
+        btn.title = u.progressText || '正在下载并应用新版本';
+      } else if (isUpdated) {
+        btn.classList.add('visible', 'updated');
+        btn.innerHTML = `<span>✓ 已更新 v${u.currentVersion || u.justUpdatedTo}</span>`;
+        btn.title = '插件已更新至最新版本';
+      } else if (showAvailable) {
+        btn.classList.add('visible');
+        btn.innerHTML = `<span class="pt-upd-dot"></span><span>新版本 v${u.latestVersion}</span>`;
+        btn.title = `发现新版本 v${u.latestVersion}，点击选择直接更新或后续再更新`;
+      }
+    }
+
+    if (isUpdatePopoverOpen()) {
+      const pop = document.getElementById(UPD_HOST_ID)?.shadowRoot?.querySelector('.pt-upd-pop');
+      if (pop) {
+        if (!u.hasUpdate && u.status !== 'updating' && u.status !== 'updated' && !u.justUpdatedTo) {
+          hideUpdatePortal();
+        } else {
+          renderUpdatePopover(pop);
+        }
+      }
+    }
+  }
+
   function clampMenuPosition(menuEl) {
     try {
       const positioner = menuEl?.parentElement;
@@ -1240,6 +1684,9 @@
     titleGroup.appendChild(subBadge);
     titleGroup.appendChild(hint);
 
+    const topbarRight = document.createElement('div');
+    topbarRight.className = 'pt-topbar-right';
+
     const legend = document.createElement('div');
     legend.className = 'pt-legend';
     legend.textContent =
@@ -1248,9 +1695,34 @@
         : tierInfo.effectiveKind === 'pro'
         ? 'Pro 订阅：Carbon 需 Ultra'
         : 'Ultra 订阅：全系无限制';
+
+    const updBtn = document.createElement('button');
+    updBtn.type = 'button';
+    updBtn.className = 'pt-upd-btn';
+    updBtn.dataset.agyUpdTrigger = '1';
+    for (const evt of ['pointerdown', 'mousedown', 'mouseup']) {
+      updBtn.addEventListener(evt, (ev) => {
+        ev.stopPropagation();
+        ev.preventDefault();
+      });
+    }
+    updBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      ev.preventDefault();
+      if (isUpdatePopoverOpen()) {
+        hideUpdatePortal();
+      } else {
+        openUpdatePopover(updBtn);
+      }
+    });
+    activeUpdBtn = updBtn;
+
+    topbarRight.appendChild(legend);
+    topbarRight.appendChild(updBtn);
     topbar.appendChild(titleGroup);
-    topbar.appendChild(legend);
+    topbar.appendChild(topbarRight);
     wrap.appendChild(topbar);
+    syncUpdateUi();
 
     // 18-col Periodic Table grid
     const grid = document.createElement('div');
@@ -1309,6 +1781,9 @@
 
     const openSubForRecord = (cellEl, rec) => {
       cancelCloseSub();
+      if (isUpdatePopoverOpen() && updateInfo?.status !== 'updating') {
+        hideUpdatePortal();
+      }
       const sameOpen =
         subPopover.classList.contains('open') &&
         subPopover.dataset.activeElNum === String(rec.element.num);
@@ -1488,10 +1963,31 @@
   let observer = null;
   function startObserver() {
     if (observer || !document.body) return;
+    if (!updDocClickHandler) {
+      updDocClickHandler = (ev) => {
+        if (!isUpdatePopoverOpen() || updateInfo?.status === 'updating') return;
+        const path = typeof ev.composedPath === 'function' ? ev.composedPath() : [];
+        const updHost = document.getElementById(UPD_HOST_ID);
+        if (updHost && path.includes(updHost)) return;
+        if (activeUpdBtn && path.includes(activeUpdBtn)) return;
+        hideUpdatePortal();
+      };
+      document.addEventListener('pointerdown', updDocClickHandler, true);
+    }
+    if (!updKeyHandler) {
+      updKeyHandler = (ev) => {
+        if (ev.key === 'Escape' && isUpdatePopoverOpen() && updateInfo?.status !== 'updating') {
+          ev.stopPropagation();
+          hideUpdatePortal();
+        }
+      };
+      document.addEventListener('keydown', updKeyHandler, true);
+    }
     observer = new MutationObserver(() => {
       const panel = document.querySelector('[data-testid="model-selector-panel"]');
       if (!panel) {
         hideSubPortal();
+        hideUpdatePortal();
       } else if (panel.dataset.agyPtableBound !== '1') {
         enhanceVisiblePanel();
       }
@@ -1516,6 +2012,10 @@
             enhanceVisiblePanel();
           }
         }
+      }
+      if (payload?.update && typeof payload.update === 'object') {
+        updateInfo = payload.update;
+        syncUpdateUi();
       }
       const ctx = getModelContext();
       if (ctx) buildPeriodicState(ctx);
@@ -1546,9 +2046,23 @@
       pendingConfigPatch = null;
       return out;
     },
+    consumePendingUpdateAction() {
+      const out = pendingUpdateAction;
+      pendingUpdateAction = null;
+      return out;
+    },
     unmount() {
       try { if (observer) observer.disconnect(); } catch {}
       observer = null;
+      if (updDocClickHandler) {
+        document.removeEventListener('pointerdown', updDocClickHandler, true);
+        updDocClickHandler = null;
+      }
+      if (updKeyHandler) {
+        document.removeEventListener('keydown', updKeyHandler, true);
+        updKeyHandler = null;
+      }
+      activeUpdBtn = null;
       document.querySelectorAll('#' + PTABLE_HOST_ID).forEach((el) => el.remove());
       document.querySelectorAll('.agy-ptable-section-label').forEach((el) => el.remove());
       document.querySelectorAll('.agy-ptable-hidden-row').forEach((el) => el.classList.remove('agy-ptable-hidden-row'));
@@ -1558,6 +2072,8 @@
       if (css) css.remove();
       const sub = document.getElementById(SUB_HOST_ID);
       if (sub) sub.remove();
+      const upd = document.getElementById(UPD_HOST_ID);
+      if (upd) upd.remove();
       const fx = document.getElementById(FX_HOST_ID);
       if (fx) fx.remove();
     },

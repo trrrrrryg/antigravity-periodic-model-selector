@@ -8,7 +8,7 @@
 
 **可扩展的 118 号元素周期表模型选择器 · 实色悬停放大 · 三档订阅分级 · 粒子消散拼字选模**
 
-[![Version](https://img.shields.io/badge/version-1.0.0-FB923C?style=flat-square)](https://github.com/trrrrrryg/antigravity-periodic-model-selector/releases)
+[![Version](https://img.shields.io/badge/version-1.1.0-FB923C?style=flat-square)](https://github.com/trrrrrryg/antigravity-periodic-model-selector/releases)
 [![Elements](https://img.shields.io/badge/Periodic_Table-118_Elements-38BDF8?style=flat-square)](#核心特性)
 [![Effects](https://img.shields.io/badge/Canvas_FX-Particle_Morph-A78BFA?style=flat-square)](#实机演示)
 
@@ -56,11 +56,12 @@
   - **Pro 订阅**：开放 `H`、`Ne`、`Ar`，锁定 `6 C (Carbon)` 并在悬停与点击时给出 Ultra 专属提示；
   - **Ultra 订阅**：全系元素无限制使用。（右侧 **Periodic Model Selector** 辅助面板支持一键模拟切换三档订阅预览效果）
 - **100% 不透明实色卡片**：灰阶元素格、高光激活格与思考强度浮层全部采用实色混色，悬停放大时不透底、字迹清晰。
+- **启动自动查新与一键更新**：每次启动自动查询 GitHub 最新 Release（支持 jsDelivr / Raw 备用源）；发现新版本时在周期表右上角展示无干扰提示按钮，点击后可选择**直接更新**（自动下载校验、原地替换并热重载）或**后续再更新**。
 
 ## 快速安装
 
 1. 确保 Antigravity 启动参数包含 `--remote-debugging-port=9222`。
-2. 从 [Releases](https://github.com/trrrrrryg/antigravity-periodic-model-selector/releases) 下载 `antigravity-periodic-model-selector-v1.0.0.zip` 并解压，或克隆本仓库：
+2. 从 [Releases](https://github.com/trrrrrryg/antigravity-periodic-model-selector/releases) 下载最新 `antigravity-periodic-model-selector-v1.1.0.zip` 并解压，或克隆本仓库：
    ```bash
    git clone https://github.com/trrrrrryg/antigravity-periodic-model-selector.git ~/.gemini/config/plugins/antigravity-periodic-model-selector
    agy plugin validate ~/.gemini/config/plugins/antigravity-periodic-model-selector
