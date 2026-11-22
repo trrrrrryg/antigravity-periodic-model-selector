@@ -6,75 +6,114 @@
 
 # Antigravity Periodic Model Selector
 
-**可扩展的 118 号元素周期表模型选择器 · 实色悬停放大 · 三档订阅分级 · 粒子消散拼字选模**
+**An unofficial, extensible 118-element Periodic Table model selector for Antigravity — featuring solid-color hover cards, effort-level popovers, tier-aware badges, particle-morph selection animations, and built-in GitHub update checks.**
 
 [![Version](https://img.shields.io/badge/version-1.1.0-FB923C?style=flat-square)](https://github.com/trrrrrryg/antigravity-periodic-model-selector/releases)
-[![Elements](https://img.shields.io/badge/Periodic_Table-118_Elements-38BDF8?style=flat-square)](#核心特性)
-[![Effects](https://img.shields.io/badge/Canvas_FX-Particle_Morph-A78BFA?style=flat-square)](#实机演示)
+[![Elements](https://img.shields.io/badge/Periodic_Table-118_Elements-38BDF8?style=flat-square)](#key-features)
+[![Effects](https://img.shields.io/badge/Canvas_FX-Particle_Morph-A78BFA?style=flat-square)](#live-demo)
+[![Unofficial](https://img.shields.io/badge/Community_Mod-Unofficial-64748B?style=flat-square)](#security-privacy--disclaimer)
 
-[实机演示](#实机演示) · [界面一览](#界面一览) · [核心特性](#核心特性) · [快速安装](#快速安装)
+**English** | [简体中文](./README.zh-CN.md)
+
+[Live Demo](#live-demo) · [Screenshots](#screenshots) · [Key Features](#key-features) · [Quick Install](#quick-install) · [Security & Disclaimer](#security-privacy--disclaimer)
 
 ---
 
-### 实机演示
+### Live Demo
 
 <img src="docs/demo.gif" alt="Periodic Model Selector Live Demo" width="880" />
 
-<sub>悬停激活元素（H / C / Ne / Ar）放大展示思考强度并实时校验订阅权限；点击选定后菜单先行收回、元素停留滞空并瞬间粒子化飞向左下角触发器，汇聚排列成新选中的模型名称。</sub>
+<sub>Hover any active element (`H`, `C`, `Ne`, `Ar`, and any future element-named Gemini models) to zoom in, pick a reasoning effort level, and inspect tier availability. Click to select: the menu closes cleanly while the element card lingers mid-air, shatters into glowing particles, and reforms into the selected model label in the bottom-left trigger.</sub>
 
 </div>
 
 <br />
 
-## 界面一览
+## Screenshots
 
 <table>
   <tr>
     <td align="center" width="34%">
-      <img src="docs/shot_table.png" alt="118号元素周期表主面板" /><br />
-      <strong>① 顶部元素周期表 + 下方其余模型</strong><br />
-      <sub>动态点亮 H / C / Ne / Ar，其余 114 个位置保持清晰灰阶；Orchestrator / Claude / GPT 等保留原样位于下方</sub>
+      <img src="docs/shot_table.png" alt="118-element Periodic Table panel" /><br />
+      <strong>1. Periodic Table + Native Model List</strong><br />
+      <sub>Dynamically lights up active element models (<code>H</code> / <code>C</code> / <code>Ne</code> / <code>Ar</code>) across the 118-element grid while keeping Orchestrator, Flash, Claude, and GPT untouched below.</sub>
     </td>
     <td align="center" width="33%">
-      <img src="docs/shot_hover.png" alt="实色元素悬停放大与思考强度浮层" /><br />
-      <strong>② 实色放大与思考强度浮层</strong><br />
-      <sub>悬停可用元素平滑放大 1.28× 并弹出实色思考强度菜单；直接点击元素格则使用默认思考强度</sub>
+      <img src="docs/shot_hover.png" alt="Solid element hover zoom and effort popover" /><br />
+      <strong>2. Solid-Color Hover & Effort Popover</strong><br />
+      <sub>Hovering an active element smoothly scales the tile (1.28&times;) and opens an opaque effort picker; clicking a tile directly selects its default effort level.</sub>
     </td>
     <td align="center" width="33%">
-      <img src="docs/shot_particles.png" alt="粒子汇聚成左下角模型名称" /><br />
-      <strong>③ 粒子消散并重排为左下角文字</strong><br />
-      <sub>选定后原菜单收起、卡片滞空爆裂为发光粒子，精准飞抵触发器并汇聚成新模型名称</sub>
+      <img src="docs/shot_particles.png" alt="Particle morph animation into model trigger label" /><br />
+      <strong>3. Particle Dissolve & Text Morph</strong><br />
+      <sub>Upon selection, the chosen element bursts into pixel particles that fly to the bottom-left trigger and assemble into the newly selected model name.</sub>
     </td>
   </tr>
 </table>
 
-## 核心特性
+## Key Features
 
-- **118 号全元素动态识别（绝不写死）**：每次弹窗挂载时自动扫描 Antigravity React Context 中的 `modelSorts` 与 `groups`，将元素命名模型自动映射到 1～118 号标准周期表坐标；日后官方新增 `He`、`B`、`Si` 等新元素模型会自动点亮对应格子，也可通过 `window.__AGY_PTABLE.registerAlias(alias, symbol)` 扩展自定义别名。
-- **三档订阅权限策略（Free / Pro / Ultra）**：
-  - **Free 免费订阅**：Gemini 4 系列元素全部锁定并提示升级；
-  - **Pro 订阅**：开放 `H`、`Ne`、`Ar`，锁定 `6 C (Carbon)` 并在悬停与点击时给出 Ultra 专属提示；
-  - **Ultra 订阅**：全系元素无限制使用。（右侧 **Periodic Model Selector** 辅助面板支持一键模拟切换三档订阅预览效果）
-- **100% 不透明实色卡片**：灰阶元素格、高光激活格与思考强度浮层全部采用实色混色，悬停放大时不透底、字迹清晰。
-- **启动自动查新与一键更新**：每次启动自动查询 GitHub 最新 Release（支持 jsDelivr / Raw 备用源）；发现新版本时在周期表右上角展示无干扰提示按钮，点击后可选择**直接更新**（自动下载校验、原地替换并热重载）或**后续再更新**。
+- **Extensible 118-Element Auto-Discovery (Zero Hardcoded Models)**: Reads live `modelSorts` and `groups` from Antigravity's model selector context on open and maps element-named models onto their IUPAC periodic table coordinates automatically. Future element models (e.g., `He`, `B`, `Si`, etc.) light up automatically, and custom aliases can be registered at runtime via `window.__AGY_PTABLE.registerAlias(alias, symbol)`.
+- **Subscription Tier Awareness (Free / Pro / Ultra)**:
+  - **Free**: Gemini 4 series elements are visually locked with an upgrade notice.
+  - **Pro**: `H`, `Ne`, and `Ar` are available; `6 C (Carbon)` is marked locked as Ultra-only.
+  - **Ultra**: Full unrestricted access across all element models.
+  - The right-hand **Periodic Model Selector** auxiliary pane includes a tier preview switcher so you can inspect all three visual states without modifying your actual subscription.
+- **100% Opaque Solid-Color Styling**: Inactive tiles, active element cards, and effort popovers use solid blended surfaces inside isolated Shadow DOM roots so text remains sharp with zero bleed-through.
+- **Startup GitHub Update Check & Explicit One-Click Update**:
+  - Automatically checks GitHub Releases on startup (with jsDelivr / GitHub Raw fallback).
+  - When a newer version is available, a non-intrusive badge appears in the top-right corner of the periodic table header without blocking model selection or closing the menu.
+  - Clicking the badge lets you choose **Direct Update** (downloads, verifies, replaces plugin files while preserving `sidecar_data`, and reloads the sidecar) or **Update Later** (hides the badge for the current session).
 
-## 快速安装
+## Quick Install
 
-1. 确保 Antigravity 启动参数包含 `--remote-debugging-port=9222`。
-2. 从 [Releases](https://github.com/trrrrrryg/antigravity-periodic-model-selector/releases) 下载最新 `antigravity-periodic-model-selector-v1.1.0.zip` 并解压，或克隆本仓库：
+1. Launch Antigravity with local remote debugging enabled:
+   ```text
+   --remote-debugging-port=9222
+   ```
+2. Download the latest `antigravity-periodic-model-selector-v1.1.0.zip` from [Releases](https://github.com/trrrrrryg/antigravity-periodic-model-selector/releases) and extract it to `~/.gemini/config/plugins/antigravity-periodic-model-selector`, **or** clone directly:
    ```bash
    git clone https://github.com/trrrrrryg/antigravity-periodic-model-selector.git ~/.gemini/config/plugins/antigravity-periodic-model-selector
    agy plugin validate ~/.gemini/config/plugins/antigravity-periodic-model-selector
    agy plugin enable antigravity-periodic-model-selector
    ```
-3. 打开对话框左下角模型选择器，即可体验元素周期表选模与粒子重排动效。
+3. Open the model selector at the bottom-left of any Antigravity chat window.
+
+### Uninstall
+
+```bash
+agy plugin disable antigravity-periodic-model-selector
+rm -rf ~/.gemini/config/plugins/antigravity-periodic-model-selector
+```
+
+## Security, Privacy & Disclaimer
+
+> **Unofficial Community Project**  
+> This repository is an independent, unofficial open-source UI experiment created by the community. It is **not** affiliated with, endorsed by, sponsored by, or officially supported by Google or the Antigravity team.
+
+- **How It Works (Local UI Enhancement Only)**:
+  - This plugin uses a local Antigravity sidecar (`sidecars/periodic_selector/main.mjs`) that connects exclusively to Electron's local Chrome DevTools Protocol endpoint on `127.0.0.1` (`--remote-debugging-port=9222`) to enhance the model selector dropdown using isolated Shadow DOM nodes.
+  - It **does not** modify or patch Antigravity application binaries (`app.asar`), and removing the plugin directory completely restores the default UI.
+- **Respects Official Entitlements & Quotas**:
+  - This plugin is strictly a visual/interaction layer. It **never** bypasses subscription tiers, server-side authorization, rate limits, or quota controls (e.g., Pro accounts still cannot invoke Ultra-only models).
+- **Zero Telemetry & Zero Dependencies**:
+  - Pure JavaScript / Node.js ESM with **zero** third-party npm packages — the entire codebase is a few small, readable files you can audit in minutes.
+  - No chat messages, API keys, credentials, or user telemetry are ever collected or transmitted.
+- **Explicit User-Triggered Updates**:
+  - The startup version check only makes a read-only `GET` request to `api.github.com` (with `cdn.jsdelivr.net` / `raw.githubusercontent.com` fallback) to compare the version string in `plugin.json`.
+  - Code is **never** silently downloaded or auto-executed in the background. File replacement happens **only** after you explicitly click **Direct Update**.
+- **Note on `--remote-debugging-port=9222`**:
+  - Enabling Electron's local debugging flag allows local processes on your machine (`127.0.0.1`) to inspect or debug the Antigravity renderer window. Only enable it in a trusted local environment, and disable it if your security policy prohibits local DevTools debugging ports.
+- **Compatibility Notice**:
+  - Because CDP DOM enhancement relies on Antigravity's internal frontend structure rather than an official UI extension API, future Antigravity updates may temporarily break compatibility until this plugin is updated.
 
 <details>
-<summary><strong>仓库结构与技术说明</strong></summary>
+<summary><strong>Repository Structure</strong></summary>
 
-- `plugin.json`：插件清单
-- `assets/logo.svg`：元素周期表网格图标
-- `sidecars/periodic_selector/main.mjs`：CDP 连接管理、热更新注入器及三档订阅预览辅助后台
-- `sidecars/periodic_selector/inject.js`：118 号元素注册表、动态模型匹配、Shadow DOM 周期表 UI、独立 Portal 思考强度浮层及 Canvas 像素级粒子拼字引擎
+- `plugin.json`: Antigravity plugin manifest & current version
+- `assets/logo.svg`: Periodic table icon
+- `sidecars/periodic_selector/sidecar.json`: Sidecar lifecycle & auxiliary pane registration
+- `sidecars/periodic_selector/main.mjs`: Local CDP target discovery, hot-reload injector, GitHub Release version checker, explicit one-click updater, and auxiliary pane server
+- `sidecars/periodic_selector/inject.js`: 118-element registry, dynamic model matcher, Shadow DOM periodic table UI, effort popover, top-right update popover, and Canvas particle-morph engine
 
 </details>
