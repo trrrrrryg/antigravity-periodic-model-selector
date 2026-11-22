@@ -1,8 +1,7 @@
 (() => {
-  const VER = 10;
+  const VER = 11;
   const PTABLE_HOST_ID = 'agy-ptable-host';
   const SUB_HOST_ID = 'agy-ptable-sub-host';
-  const UPD_HOST_ID = 'agy-ptable-upd-host';
   const FX_HOST_ID = 'agy-ptable-fx-host';
   const MENU_CSS_ID = 'agy-ptable-menu-override-css';
 
@@ -138,6 +137,7 @@
   let updateInfo = null;
   let pendingUpdateAction = null;
   let activeUpdBtn = null;
+  let activeUpdPop = null;
   let updDocClickHandler = null;
   let updKeyHandler = null;
   let lastTelemetry = null;
@@ -829,6 +829,167 @@
     @keyframes pt-upd-rot {
       to { transform: rotate(360deg); }
     }
+    .pt-upd-pop {
+      position: absolute;
+      top: 30px;
+      right: 8px;
+      z-index: 80;
+      width: 296px;
+      background: #17181E;
+      border: 1px solid rgba(56, 189, 248, 0.52);
+      border-radius: 12px;
+      padding: 12px;
+      color: #EAEBF1;
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.82), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+      display: none;
+      flex-direction: column;
+      gap: 9px;
+      animation: pt-upd-in 150ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    @keyframes pt-upd-in {
+      from { opacity: 0; transform: translateY(-4px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .pt-upd-pop.open { display: flex; }
+    .pt-upd-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .pt-upd-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #F4F6FA;
+    }
+    .pt-upd-tag {
+      padding: 1px 6px;
+      border-radius: 5px;
+      font-size: 10.5px;
+      font-weight: 700;
+      background: rgba(56, 189, 248, 0.20);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      color: #BAE6FD;
+    }
+    .pt-upd-tag.ok {
+      background: rgba(16, 185, 129, 0.20);
+      border-color: rgba(16, 185, 129, 0.48);
+      color: #A7F3D0;
+    }
+    .pt-upd-close {
+      background: transparent;
+      border: none;
+      color: #8E909A;
+      font-size: 14px;
+      line-height: 1;
+      padding: 2px 5px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .pt-upd-close:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #EAEBF1;
+    }
+    .pt-upd-ver {
+      font-size: 11px;
+      color: #9CA0AC;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .pt-upd-notes {
+      background: #111217;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 8px 9px;
+      font-size: 11px;
+      line-height: 1.48;
+      color: #C7CAD4;
+      white-space: pre-wrap;
+      max-height: 118px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+    }
+    .pt-upd-notes::-webkit-scrollbar { width: 5px; }
+    .pt-upd-notes::-webkit-scrollbar-track { background: transparent; }
+    .pt-upd-notes::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.18); border-radius: 99px; }
+    .pt-upd-notes::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.30); }
+    .pt-upd-progress {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgba(249, 115, 22, 0.14);
+      border: 1px solid rgba(249, 115, 22, 0.42);
+      color: #FED7AA;
+      font-size: 11.5px;
+      line-height: 1.4;
+    }
+    .pt-upd-progress.ok {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.45);
+      color: #A7F3D0;
+    }
+    .pt-upd-err {
+      padding: 7px 9px;
+      border-radius: 8px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.42);
+      color: #FECACA;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+    .pt-upd-spinner {
+      width: 12px;
+      height: 12px;
+      flex: 0 0 12px;
+      border-radius: 50%;
+      border: 2px solid rgba(254, 215, 170, 0.3);
+      border-top-color: #FB923C;
+      animation: pt-upd-rot 700ms linear infinite;
+    }
+    .pt-upd-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 7px;
+      margin-top: 2px;
+    }
+    .pt-upd-act {
+      border-radius: 7px;
+      padding: 6px 11px;
+      font-size: 11.5px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      background: rgba(255, 255, 255, 0.05);
+      color: #D2D5DF;
+      transition: background-color 130ms ease, border-color 130ms ease, transform 100ms ease;
+    }
+    .pt-upd-act:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.11);
+      color: #FFFFFF;
+    }
+    .pt-upd-act.primary {
+      background: linear-gradient(135deg, #2563EB, #0284C7);
+      border-color: rgba(125, 211, 252, 0.65);
+      color: #FFFFFF;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+    .pt-upd-act.primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, #3B82F6, #0EA5E9);
+    }
+    .pt-upd-act:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
     .pt-grid {
       display: grid;
       grid-template-columns: repeat(18, 35px);
@@ -1204,209 +1365,16 @@
     }
   }
 
-  const UPD_CSS = `
-    :host {
-      all: initial;
-      position: fixed;
-      z-index: 2147483646;
-      pointer-events: none;
-      inset: 0;
-      font-family: "Google Sans Flex", "Google Sans", system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
-    }
-    * { box-sizing: border-box; }
-    .pt-upd-pop {
-      position: fixed;
-      pointer-events: auto;
-      width: 286px;
-      background: #17181E;
-      border: 1px solid rgba(56, 189, 248, 0.48);
-      border-radius: 12px;
-      padding: 12px;
-      color: #EAEBF1;
-      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.78), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
-      display: none;
-      flex-direction: column;
-      gap: 9px;
-      animation: pt-upd-in 150ms cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    @keyframes pt-upd-in {
-      from { opacity: 0; transform: translateY(-4px) scale(0.96); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .pt-upd-pop.open { display: flex; }
-    .pt-upd-hdr {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-    .pt-upd-title {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12.5px;
-      font-weight: 700;
-      color: #F4F6FA;
-    }
-    .pt-upd-tag {
-      padding: 1px 6px;
-      border-radius: 5px;
-      font-size: 10.5px;
-      font-weight: 700;
-      background: rgba(56, 189, 248, 0.20);
-      border: 1px solid rgba(56, 189, 248, 0.45);
-      color: #BAE6FD;
-    }
-    .pt-upd-tag.ok {
-      background: rgba(16, 185, 129, 0.20);
-      border-color: rgba(16, 185, 129, 0.48);
-      color: #A7F3D0;
-    }
-    .pt-upd-close {
-      background: transparent;
-      border: none;
-      color: #8E909A;
-      font-size: 14px;
-      line-height: 1;
-      padding: 2px 4px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .pt-upd-close:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: #EAEBF1;
-    }
-    .pt-upd-ver {
-      font-size: 11px;
-      color: #9CA0AC;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-    }
-    .pt-upd-notes {
-      background: #111217;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 8px;
-      padding: 8px 9px;
-      font-size: 11px;
-      line-height: 1.45;
-      color: #C7CAD4;
-      white-space: pre-wrap;
-      max-height: 96px;
-      overflow-y: auto;
-    }
-    .pt-upd-progress {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
-      border-radius: 8px;
-      background: rgba(249, 115, 22, 0.14);
-      border: 1px solid rgba(249, 115, 22, 0.42);
-      color: #FED7AA;
-      font-size: 11.5px;
-      line-height: 1.4;
-    }
-    .pt-upd-progress.ok {
-      background: rgba(16, 185, 129, 0.15);
-      border-color: rgba(16, 185, 129, 0.45);
-      color: #A7F3D0;
-    }
-    .pt-upd-err {
-      padding: 7px 9px;
-      border-radius: 8px;
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.42);
-      color: #FECACA;
-      font-size: 11px;
-      line-height: 1.4;
-    }
-    .pt-upd-spinner {
-      width: 12px;
-      height: 12px;
-      flex: 0 0 12px;
-      border-radius: 50%;
-      border: 2px solid rgba(254, 215, 170, 0.3);
-      border-top-color: #FB923C;
-      animation: pt-upd-spin-k 700ms linear infinite;
-    }
-    @keyframes pt-upd-spin-k {
-      to { transform: rotate(360deg); }
-    }
-    .pt-upd-actions {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 7px;
-      margin-top: 2px;
-    }
-    .pt-upd-act {
-      border-radius: 7px;
-      padding: 6px 11px;
-      font-size: 11.5px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      border: 1px solid rgba(255, 255, 255, 0.11);
-      background: rgba(255, 255, 255, 0.05);
-      color: #D2D5DF;
-      transition: background-color 130ms ease, border-color 130ms ease, transform 100ms ease;
-    }
-    .pt-upd-act:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.11);
-      color: #FFFFFF;
-    }
-    .pt-upd-act.primary {
-      background: linear-gradient(135deg, #2563EB, #0284C7);
-      border-color: rgba(125, 211, 252, 0.65);
-      color: #FFFFFF;
-      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
-    }
-    .pt-upd-act.primary:hover:not(:disabled) {
-      background: linear-gradient(135deg, #3B82F6, #0EA5E9);
-    }
-    .pt-upd-act:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  `;
-
-  function getUpdatePortal() {
-    let updHost = document.getElementById(UPD_HOST_ID);
-    if (!updHost) {
-      updHost = document.createElement('div');
-      updHost.id = UPD_HOST_ID;
-      document.body.appendChild(updHost);
-    }
-    const usr = updHost.shadowRoot || updHost.attachShadow({ mode: 'open' });
-    let pop = usr.querySelector('.pt-upd-pop');
-    if (!pop) {
-      usr.innerHTML = '';
-      const st = document.createElement('style');
-      st.textContent = UPD_CSS;
-      usr.appendChild(st);
-      pop = document.createElement('div');
-      pop.className = 'pt-upd-pop';
-      for (const evt of ['pointerdown', 'mousedown', 'mouseup', 'click']) {
-        pop.addEventListener(evt, (ev) => ev.stopPropagation());
-      }
-      usr.appendChild(pop);
-    }
-    return { updHost, pop };
-  }
-
   function isUpdatePopoverOpen() {
-    const pop = document.getElementById(UPD_HOST_ID)?.shadowRoot?.querySelector('.pt-upd-pop');
-    return !!pop?.classList.contains('open');
+    return !!(activeUpdPop && activeUpdPop.isConnected && activeUpdPop.classList.contains('open'));
   }
 
   function hideUpdatePortal() {
-    const pop = document.getElementById(UPD_HOST_ID)?.shadowRoot?.querySelector('.pt-upd-pop');
-    if (pop) pop.classList.remove('open');
+    if (activeUpdPop) activeUpdPop.classList.remove('open');
   }
 
   function renderUpdatePopover(pop) {
+    if (!pop) return;
     const u = updateInfo || {};
     const isUpdating = u.status === 'updating';
     const isUpdated = u.status === 'updated' || (!!u.justUpdatedTo && !u.hasUpdate);
@@ -1519,26 +1487,13 @@
     pop.appendChild(actions);
   }
 
-  function openUpdatePopover(anchorBtn) {
+  function openUpdatePopover() {
     hideSubPortal();
-    const { pop } = getUpdatePortal();
-    renderUpdatePopover(pop);
-    pop.classList.remove('open');
-    void pop.offsetWidth;
-    pop.classList.add('open');
-
-    const br = anchorBtn.getBoundingClientRect();
-    const pw = 286;
-    const ph = pop.offsetHeight || 180;
-    let left = br.right - pw;
-    if (left < 10) left = 10;
-    if (left + pw > window.innerWidth - 10) left = window.innerWidth - pw - 10;
-    let top = br.bottom + 8;
-    if (top + ph > window.innerHeight - 10) {
-      top = Math.max(10, br.top - ph - 8);
-    }
-    pop.style.left = `${Math.round(left)}px`;
-    pop.style.top = `${Math.round(top)}px`;
+    if (!activeUpdPop || !activeUpdPop.isConnected) return;
+    renderUpdatePopover(activeUpdPop);
+    activeUpdPop.classList.remove('open');
+    void activeUpdPop.offsetWidth;
+    activeUpdPop.classList.add('open');
   }
 
   function syncUpdateUi() {
@@ -1566,13 +1521,10 @@
     }
 
     if (isUpdatePopoverOpen()) {
-      const pop = document.getElementById(UPD_HOST_ID)?.shadowRoot?.querySelector('.pt-upd-pop');
-      if (pop) {
-        if (!u.hasUpdate && u.status !== 'updating' && u.status !== 'updated' && !u.justUpdatedTo) {
-          hideUpdatePortal();
-        } else {
-          renderUpdatePopover(pop);
-        }
+      if (!u.hasUpdate && u.status !== 'updating' && u.status !== 'updated' && !u.justUpdatedTo) {
+        hideUpdatePortal();
+      } else {
+        renderUpdatePopover(activeUpdPop);
       }
     }
   }
@@ -1712,16 +1664,24 @@
       if (isUpdatePopoverOpen()) {
         hideUpdatePortal();
       } else {
-        openUpdatePopover(updBtn);
+        openUpdatePopover();
       }
     });
     activeUpdBtn = updBtn;
+
+    const updPop = document.createElement('div');
+    updPop.className = 'pt-upd-pop';
+    for (const evt of ['pointerdown', 'mousedown', 'mouseup', 'click']) {
+      updPop.addEventListener(evt, (ev) => ev.stopPropagation());
+    }
+    activeUpdPop = updPop;
 
     topbarRight.appendChild(legend);
     topbarRight.appendChild(updBtn);
     topbar.appendChild(titleGroup);
     topbar.appendChild(topbarRight);
     wrap.appendChild(topbar);
+    wrap.appendChild(updPop);
     syncUpdateUi();
 
     // 18-col Periodic Table grid
@@ -1967,8 +1927,7 @@
       updDocClickHandler = (ev) => {
         if (!isUpdatePopoverOpen() || updateInfo?.status === 'updating') return;
         const path = typeof ev.composedPath === 'function' ? ev.composedPath() : [];
-        const updHost = document.getElementById(UPD_HOST_ID);
-        if (updHost && path.includes(updHost)) return;
+        if (activeUpdPop && path.includes(activeUpdPop)) return;
         if (activeUpdBtn && path.includes(activeUpdBtn)) return;
         hideUpdatePortal();
       };
@@ -2063,6 +2022,7 @@
         updKeyHandler = null;
       }
       activeUpdBtn = null;
+      activeUpdPop = null;
       document.querySelectorAll('#' + PTABLE_HOST_ID).forEach((el) => el.remove());
       document.querySelectorAll('.agy-ptable-section-label').forEach((el) => el.remove());
       document.querySelectorAll('.agy-ptable-hidden-row').forEach((el) => el.classList.remove('agy-ptable-hidden-row'));
@@ -2072,8 +2032,6 @@
       if (css) css.remove();
       const sub = document.getElementById(SUB_HOST_ID);
       if (sub) sub.remove();
-      const upd = document.getElementById(UPD_HOST_ID);
-      if (upd) upd.remove();
       const fx = document.getElementById(FX_HOST_ID);
       if (fx) fx.remove();
     },
