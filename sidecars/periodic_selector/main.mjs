@@ -32,7 +32,6 @@ const DATA_DIR = join(
 );
 const LOCK_FILE = join(DATA_DIR, 'sidecar.lock');
 const CONFIG_FILE = join(DATA_DIR, 'config.json');
-const LAST_UPDATED_FILE = join(DATA_DIR, 'last-updated.json');
 
 const GITHUB_OWNER = 'trrrrrryg';
 const GITHUB_REPO = 'antigravity-periodic-model-selector';
@@ -186,20 +185,6 @@ function summarizeReleaseNotes(body) {
   return joined.length > 260 ? `${joined.slice(0, 257)}...` : joined;
 }
 
-function consumeRecentUpdateMarker() {
-  try {
-    if (!existsSync(LAST_UPDATED_FILE)) return null;
-    const raw = JSON.parse(readFileSync(LAST_UPDATED_FILE, 'utf8'));
-    try { unlinkSync(LAST_UPDATED_FILE); } catch {}
-    if (raw && Date.now() - Number(raw.at || 0) <= 30_000) {
-      return { from: normalizeVersion(raw.from), to: normalizeVersion(raw.to), at: Number(raw.at) };
-    }
-  } catch {}
-  return null;
-}
-
-const recentMarker = consumeRecentUpdateMarker();
-
 const updateState = {
   repo: REPO_SLUG,
   currentVersion: readLocalVersion(),
@@ -214,18 +199,13 @@ const updateState = {
   source: null,
   hasUpdate: false,
   deferred: false,
-  status: 'idle', // 'idle' | 'checking' | 'available' | 'up-to-date' | 'updating' | 'updated' | 'error'
+  status: 'idle', // 'idle' | 'checking' | 'available' | 'up-to-date' | 'updating' | 'error'
   progressText: '',
   error: null,
   checkedAt: 0,
-  justUpdatedFrom: recentMarker?.from || null,
-  justUpdatedTo: recentMarker?.to || null,
-  justUpdatedAt: recentMarker?.at || 0,
 };
 
 function getPublicUpdateState() {
-  const showBannerNotice =
-    updateState.justUpdatedTo && Date.now() - Number(updateState.justUpdatedAt || 0) <= 25_000;
   return {
     repo: updateState.repo,
     currentVersion: updateState.currentVersion,
@@ -242,8 +222,6 @@ function getPublicUpdateState() {
     progressText: updateState.progressText,
     error: updateState.error,
     checkedAt: updateState.checkedAt,
-    justUpdatedFrom: showBannerNotice ? updateState.justUpdatedFrom : null,
-    justUpdatedTo: showBannerNotice ? updateState.justUpdatedTo : null,
   };
 }
 
@@ -260,7 +238,7 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 6000) {
 let checkInFlight = null;
 
 async function checkForUpdates({ resetDeferred = false } = {}) {
-  if (updateState.status === 'updating' || updateState.status === 'updated') {
+  if (updateState.status === 'updating') {
     return getPublicUpdateState();
   }
   if (checkInFlight) return checkInFlight;
@@ -584,29 +562,18 @@ async function performDirectUpdate() {
         appliedVersion = validateAndApplyStagedFiles(stagedRoot);
       }
 
-      try {
-        mkdirSync(DATA_DIR, { recursive: true });
-        writeFileSync(
-          LAST_UPDATED_FILE,
-          JSON.stringify({ from: prevVersion, to: appliedVersion, at: Date.now() })
-        );
-      } catch {}
-
-      updateState.justUpdatedFrom = prevVersion;
-      updateState.justUpdatedTo = appliedVersion;
-      updateState.justUpdatedAt = Date.now();
       updateState.currentVersion = appliedVersion;
       updateState.hasUpdate = false;
-      updateState.status = 'updated';
-      updateState.progressText = `已成功更新至 v${appliedVersion}，正在重载插件...`;
+      updateState.status = 'up-to-date';
+      updateState.progressText = '';
 
-      // Allow inject.js to display the completion state before restarting into the new sidecar
+      // Push clean up-to-date state once so any open popover closes, then restart into the updated sidecar
       setTimeout(() => {
         releaseOwnLock();
         if (cdpClient) cdpClient.close();
         try { server.close(); } catch {}
         process.exit(0);
-      }, 1600);
+      }, 500);
 
       return getPublicUpdateState();
     } catch (err) {
@@ -858,7 +825,7 @@ async function tick() {
       state.telemetry = res.telemetry || null;
     }
 
-    const busyUpdating = updateState.status === 'updating' || updateState.status === 'updated';
+    const busyUpdating = updateState.status === 'updating';
     return busyUpdating ? 350 : 900;
   } catch {
     if (cdpClient) {
@@ -960,11 +927,6 @@ async function refresh() {
       applyBtn.style.display = 'inline-block';
       applyBtn.disabled = true;
       applyBtn.textContent = '正在更新...';
-    } else if (u.status === 'updated' || u.justUpdatedTo) {
-      badge.className = 'badge ok';
-      badge.textContent = '已更新';
-      info.textContent = '当前版本 v' + (u.currentVersion || u.justUpdatedTo) + '（刚完成升级）';
-      applyBtn.style.display = 'none';
     } else if (u.hasUpdate) {
       badge.className = 'badge new';
       badge.textContent = '有新版本 v' + u.latestVersion;

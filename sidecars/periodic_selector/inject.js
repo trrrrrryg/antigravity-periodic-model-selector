@@ -1,5 +1,5 @@
 (() => {
-  const VER = 12;
+  const VER = 13;
   const PTABLE_HOST_ID = 'agy-ptable-host';
   const SUB_HOST_ID = 'agy-ptable-sub-host';
   const FX_HOST_ID = 'agy-ptable-fx-host';
@@ -1377,8 +1377,17 @@
     if (!pop) return;
     const u = updateInfo || {};
     const isUpdating = u.status === 'updating';
-    const isUpdated = u.status === 'updated' || (!!u.justUpdatedTo && !u.hasUpdate);
     const isError = u.status === 'error';
+    const renderKey = JSON.stringify([
+      u.status || '',
+      u.currentVersion || '',
+      u.latestVersion || '',
+      u.progressText || '',
+      u.error || '',
+      u.releaseNotes || '',
+    ]);
+    if (pop.dataset.updRenderKey === renderKey && pop.childElementCount > 0) return;
+    pop.dataset.updRenderKey = renderKey;
 
     pop.innerHTML = '';
 
@@ -1386,11 +1395,7 @@
     hdr.className = 'pt-upd-hdr';
     const title = document.createElement('div');
     title.className = 'pt-upd-title';
-    const tagCls = isUpdated ? 'pt-upd-tag ok' : 'pt-upd-tag';
-    const tagTxt = isUpdated
-      ? `v${u.currentVersion || u.justUpdatedTo}`
-      : `v${u.latestVersion || ''}`;
-    title.innerHTML = `<span>${isUpdated ? '插件更新完成' : '发现新版本'}</span><span class="${tagCls}">${tagTxt}</span>`;
+    title.innerHTML = `<span>发现新版本</span><span class="pt-upd-tag">v${u.latestVersion || ''}</span>`;
 
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
@@ -1407,9 +1412,7 @@
 
     const verRow = document.createElement('div');
     verRow.className = 'pt-upd-ver';
-    verRow.innerHTML = isUpdated
-      ? `<span>已从 v${u.justUpdatedFrom || '?'} 升级至 v${u.currentVersion || u.justUpdatedTo}</span><span>GitHub</span>`
-      : `<span>当前 v${u.currentVersion || '1.0.0'} → 最新 v${u.latestVersion || '?'}</span><span>GitHub</span>`;
+    verRow.innerHTML = `<span>当前 v${u.currentVersion || '1.0.0'} → 最新 v${u.latestVersion || '?'}</span><span>GitHub</span>`;
     pop.appendChild(verRow);
 
     if (isUpdating) {
@@ -1417,11 +1420,6 @@
       prog.className = 'pt-upd-progress';
       prog.innerHTML = `<span class="pt-upd-spinner"></span><span>${u.progressText || '正在下载并应用更新...'}</span>`;
       pop.appendChild(prog);
-    } else if (isUpdated) {
-      const okBox = document.createElement('div');
-      okBox.className = 'pt-upd-progress ok';
-      okBox.textContent = u.progressText || `✓ 已更新至 v${u.currentVersion || u.justUpdatedTo}，新版本已就绪`;
-      pop.appendChild(okBox);
     } else {
       if (u.releaseNotes) {
         const notes = document.createElement('div');
@@ -1440,50 +1438,38 @@
     const actions = document.createElement('div');
     actions.className = 'pt-upd-actions';
 
-    if (isUpdated) {
-      const doneBtn = document.createElement('button');
-      doneBtn.type = 'button';
-      doneBtn.className = 'pt-upd-act primary';
-      doneBtn.textContent = '知道了';
-      doneBtn.onclick = (ev) => {
-        ev.stopPropagation();
-        hideUpdatePortal();
-      };
-      actions.appendChild(doneBtn);
-    } else {
-      const laterBtn = document.createElement('button');
-      laterBtn.type = 'button';
-      laterBtn.className = 'pt-upd-act';
-      laterBtn.textContent = '后续再更新';
-      laterBtn.disabled = isUpdating;
-      laterBtn.onclick = (ev) => {
-        ev.stopPropagation();
-        pendingUpdateAction = 'defer';
-        if (updateInfo) updateInfo = { ...updateInfo, deferred: true };
-        hideUpdatePortal();
-        syncUpdateUi();
-      };
+    const laterBtn = document.createElement('button');
+    laterBtn.type = 'button';
+    laterBtn.className = 'pt-upd-act';
+    laterBtn.textContent = '后续再更新';
+    laterBtn.disabled = isUpdating;
+    laterBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      pendingUpdateAction = 'defer';
+      if (updateInfo) updateInfo = { ...updateInfo, deferred: true };
+      hideUpdatePortal();
+      syncUpdateUi();
+    };
 
-      const nowBtn = document.createElement('button');
-      nowBtn.type = 'button';
-      nowBtn.className = 'pt-upd-act primary';
-      nowBtn.textContent = isUpdating ? '更新中...' : (isError ? '重试更新' : '直接更新');
-      nowBtn.disabled = isUpdating;
-      nowBtn.onclick = (ev) => {
-        ev.stopPropagation();
-        pendingUpdateAction = 'apply';
-        updateInfo = {
-          ...(updateInfo || {}),
-          status: 'updating',
-          error: null,
-          progressText: '正在启动更新任务...',
-        };
-        syncUpdateUi();
+    const nowBtn = document.createElement('button');
+    nowBtn.type = 'button';
+    nowBtn.className = 'pt-upd-act primary';
+    nowBtn.textContent = isUpdating ? '更新中...' : (isError ? '重试更新' : '直接更新');
+    nowBtn.disabled = isUpdating;
+    nowBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      pendingUpdateAction = 'apply';
+      updateInfo = {
+        ...(updateInfo || {}),
+        status: 'updating',
+        error: null,
+        progressText: '正在启动更新任务...',
       };
+      syncUpdateUi();
+    };
 
-      actions.appendChild(laterBtn);
-      actions.appendChild(nowBtn);
-    }
+    actions.appendChild(laterBtn);
+    actions.appendChild(nowBtn);
     pop.appendChild(actions);
   }
 
@@ -1498,30 +1484,32 @@
 
   function syncUpdateUi() {
     const u = updateInfo || {};
+    const isUpdating = u.status === 'updating';
+    const showAvailable = !!u.hasUpdate && !u.deferred;
     const btn = activeUpdBtn;
-    if (btn && btn.isConnected) {
-      const isUpdating = u.status === 'updating';
-      const isUpdated = u.status === 'updated' || (!!u.justUpdatedTo && !u.hasUpdate);
-      const showAvailable = !!u.hasUpdate && !u.deferred;
 
-      btn.classList.remove('visible', 'updating', 'updated');
-      if (isUpdating) {
-        btn.classList.add('visible', 'updating');
-        btn.innerHTML = `<span class="pt-upd-spin"></span><span>更新中...</span>`;
-        btn.title = u.progressText || '正在下载并应用新版本';
-      } else if (isUpdated) {
-        btn.classList.add('visible', 'updated');
-        btn.innerHTML = `<span>✓ 已更新 v${u.currentVersion || u.justUpdatedTo}</span>`;
-        btn.title = '插件已更新至最新版本';
-      } else if (showAvailable) {
-        btn.classList.add('visible');
-        btn.innerHTML = `<span class="pt-upd-dot"></span><span>新版本 v${u.latestVersion}</span>`;
-        btn.title = `发现新版本 v${u.latestVersion}，点击选择直接更新或后续再更新`;
+    if (btn && btn.isConnected) {
+      const nextMode = isUpdating ? 'updating' : showAvailable ? 'available' : 'hidden';
+      const nextKey = `${nextMode}:${u.latestVersion || ''}:${u.progressText || ''}`;
+      if (btn.dataset.updBtnKey !== nextKey) {
+        btn.dataset.updBtnKey = nextKey;
+        btn.classList.toggle('visible', nextMode !== 'hidden');
+        btn.classList.toggle('updating', nextMode === 'updating');
+        if (nextMode === 'updating') {
+          btn.innerHTML = `<span class="pt-upd-spin"></span><span>更新中...</span>`;
+          btn.title = u.progressText || '正在下载并应用新版本';
+        } else if (nextMode === 'available') {
+          btn.innerHTML = `<span class="pt-upd-dot"></span><span>新版本 v${u.latestVersion}</span>`;
+          btn.title = `发现新版本 v${u.latestVersion}，点击选择直接更新或后续再更新`;
+        } else {
+          btn.innerHTML = '';
+          btn.title = '';
+        }
       }
     }
 
     if (isUpdatePopoverOpen()) {
-      if (!u.hasUpdate && u.status !== 'updating' && u.status !== 'updated' && !u.justUpdatedTo) {
+      if (!isUpdating && !showAvailable) {
         hideUpdatePortal();
       } else {
         renderUpdatePopover(activeUpdPop);
