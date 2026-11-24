@@ -8,7 +8,7 @@
 
 **An unofficial, extensible 118-element Periodic Table model selector for Antigravity — featuring solid-color hover cards, effort-level popovers, tier-aware badges, particle-morph selection animations, and built-in GitHub update checks.**
 
-[![Version](https://img.shields.io/badge/version-1.1.0-FB923C?style=flat-square)](https://github.com/trrrrrryg/antigravity-periodic-model-selector/releases)
+[![Version](https://img.shields.io/badge/version-1.1.1-FB923C?style=flat-square)](https://github.com/trrrrrryg/antigravity-periodic-model-selector/releases)
 [![Elements](https://img.shields.io/badge/Periodic_Table-118_Elements-38BDF8?style=flat-square)](#key-features)
 [![Effects](https://img.shields.io/badge/Canvas_FX-Particle_Morph-A78BFA?style=flat-square)](#live-demo)
 [![Unofficial](https://img.shields.io/badge/Community_Mod-Unofficial-64748B?style=flat-square)](#security-privacy--disclaimer)
@@ -56,7 +56,7 @@
 - **Extensible 118-Element Auto-Discovery (Zero Hardcoded Models)**: Reads live `modelSorts` and `groups` from Antigravity's model selector context on open and maps element-named models onto their IUPAC periodic table coordinates automatically. Future element models (e.g., `He`, `B`, `Si`, etc.) light up automatically, and custom aliases can be registered at runtime via `window.__AGY_PTABLE.registerAlias(alias, symbol)`.
 - **Subscription Tier Awareness (Free / Pro / Ultra)**:
   - **Free**: Gemini 4 series elements are visually locked with an upgrade notice.
-  - **Pro**: `H`, `Ne`, and `Ar` are available; `6 C (Carbon)` is marked locked as Ultra-only.
+  - **Pro**: `H`, `C (Carbon)`, `Ne`, and `Ar` are all available; any model explicitly disabled by the backend remains locked.
   - **Ultra**: Full unrestricted access across all element models.
   - The right-hand **Periodic Model Selector** auxiliary pane includes a tier preview switcher so you can inspect all three visual states without modifying your actual subscription.
 - **100% Opaque Solid-Color Styling**: Inactive tiles, active element cards, and effort popovers use solid blended surfaces inside isolated Shadow DOM roots so text remains sharp with zero bleed-through.
@@ -71,7 +71,7 @@
    ```text
    --remote-debugging-port=9222
    ```
-2. Download the latest `antigravity-periodic-model-selector-v1.1.0.zip` from [Releases](https://github.com/trrrrrryg/antigravity-periodic-model-selector/releases) and extract it to `~/.gemini/config/plugins/antigravity-periodic-model-selector`, **or** clone directly:
+2. Download the latest `antigravity-periodic-model-selector-v1.1.1.zip` from [Releases](https://github.com/trrrrrryg/antigravity-periodic-model-selector/releases) and extract it to `~/.gemini/config/plugins/antigravity-periodic-model-selector`, **or** clone directly:
    ```bash
    git clone https://github.com/trrrrrryg/antigravity-periodic-model-selector.git ~/.gemini/config/plugins/antigravity-periodic-model-selector
    agy plugin validate ~/.gemini/config/plugins/antigravity-periodic-model-selector

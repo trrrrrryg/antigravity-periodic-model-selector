@@ -1,5 +1,5 @@
 (() => {
-  const VER = 13;
+  const VER = 14;
   const PTABLE_HOST_ID = 'agy-ptable-host';
   const SUB_HOST_ID = 'agy-ptable-sub-host';
   const FX_HOST_ID = 'agy-ptable-fx-host';
@@ -271,14 +271,12 @@
 
   function evaluateAvailability(entry, tierInfo) {
     const isSeries4Plus = /gemini\s+[4-9]/i.test(entry.familyName) || /gemini-[4-9]/i.test(entry.sampleOpt?.modelId || '');
-    const elSym = entry.element.symbol;
-    const isCarbon = elSym === 'C';
     const rawDisabled = entry.variants.every((v) => !!v.disabled);
     const serverReason = entry.sampleOpt?.tagDescription || '';
 
-    // Tier policy requested by user:
+    // Tier policy:
     // - Free: 4-series models unavailable
-    // - Pro: Carbon unavailable, other 4-series available (unless backend disabled)
+    // - Pro: 4-series models (including Carbon) available unless explicitly disabled by backend
     // - Ultra: No tier restriction
     if (tierInfo.effectiveKind === 'free' && isSeries4Plus) {
       return {
@@ -290,20 +288,19 @@
     }
 
     if (tierInfo.effectiveKind === 'pro') {
-      if (isCarbon || rawDisabled) {
+      if (rawDisabled) {
         return {
           available: false,
           tierLocked: true,
           requiredTier: 'Ultra',
-          reason: isCarbon
-            ? (serverReason || 'Google AI Pro 订阅暂不支持 Gemini 4 Carbon，仅限 Ultra 订阅用户使用。')
-            : (serverReason || '当前订阅档位暂不可用此模型。'),
+          reason: serverReason || '当前订阅档位暂不可用此模型。',
         };
       }
+      return { available: true, tierLocked: false, backendDisabledOnly: false, requiredTier: null, reason: '' };
     }
 
     if (tierInfo.effectiveKind === 'ultra') {
-      // Ultra has zero tier restrictions; if simulating Ultra on a Pro account whose backend returned disabled:true,
+      // Ultra has zero tier restrictions; if simulating Ultra on an account whose backend returned disabled:true,
       // unlock UI interaction visually and flag preview-only notice on click.
       return {
         available: true,
@@ -311,7 +308,7 @@
         backendDisabledOnly: rawDisabled && tierInfo.isSimulated,
         requiredTier: null,
         reason: rawDisabled && tierInfo.isSimulated
-          ? 'Ultra 预览已解锁（注：当前登录账户后端为 Pro，真实切换 Carbon 需 Ultra 账户）'
+          ? 'Ultra 预览已解锁（注：当前登录账户后端未开放该模型，真实切换需对应订阅账户）'
           : '',
       };
     }
@@ -1633,7 +1630,7 @@
       tierInfo.effectiveKind === 'free'
         ? 'Free 订阅：4系禁用'
         : tierInfo.effectiveKind === 'pro'
-        ? 'Pro 订阅：Carbon 需 Ultra'
+        ? 'Pro 订阅：4系已开放（含 Carbon）'
         : 'Ultra 订阅：全系无限制';
 
     const updBtn = document.createElement('button');

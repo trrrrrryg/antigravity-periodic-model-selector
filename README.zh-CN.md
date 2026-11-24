@@ -8,7 +8,7 @@
 
 **非官方社区开源 · 可扩展 118 号元素周期表模型选择器 · 实色悬停放大 · 三档订阅分级 · 粒子消散拼字选模 · 启动自动查新与一键更新**
 
-[![Version](https://img.shields.io/badge/version-1.1.0-FB923C?style=flat-square)](https://github.com/trrrrrryg/antigravity-periodic-model-selector/releases)
+[![Version](https://img.shields.io/badge/version-1.1.1-FB923C?style=flat-square)](https://github.com/trrrrrryg/antigravity-periodic-model-selector/releases)
 [![Elements](https://img.shields.io/badge/Periodic_Table-118_Elements-38BDF8?style=flat-square)](#核心特性)
 [![Effects](https://img.shields.io/badge/Canvas_FX-Particle_Morph-A78BFA?style=flat-square)](#实机演示)
 [![Unofficial](https://img.shields.io/badge/Community_Mod-Unofficial-64748B?style=flat-square)](#安全隐私与非官方声明)
@@ -56,7 +56,7 @@
 - **118 号全元素动态识别（绝不写死）**：每次弹窗挂载时自动扫描 Antigravity 模型选择上下文中的 `modelSorts` 与 `groups`，将元素命名模型自动映射到 1～118 号标准周期表坐标；日后官方新增 `He`、`B`、`Si` 等新元素模型会自动点亮对应格子，也可通过 `window.__AGY_PTABLE.registerAlias(alias, symbol)` 扩展自定义别名。
 - **三档订阅权限策略（Free / Pro / Ultra）**：
   - **Free 免费订阅**：Gemini 4 系列元素全部锁定并提示升级；
-  - **Pro 订阅**：开放 `H`、`Ne`、`Ar`，锁定 `6 C (Carbon)` 并在悬停与点击时给出 Ultra 专属提示；
+  - **Pro 订阅**：开放 `H`、`C (Carbon)`、`Ne`、`Ar` 等 4 系元素模型；仅当后端显式禁用特定高阶模型时才锁定提示；
   - **Ultra 订阅**：全系元素无限制使用。（右侧 **Periodic Model Selector** 辅助面板支持一键模拟切换三档订阅预览效果）
 - **100% 不透明实色卡片**：灰阶元素格、高光激活格与思考强度浮层全部采用实色混色，悬停放大时不透底、字迹清晰。
 - **启动自动查新与一键更新**：每次启动自动查询 GitHub 最新 Release（支持 jsDelivr / Raw 备用源）；发现新版本时在周期表右上角展示无干扰提示按钮，点击后可选择**直接更新**（下载校验、原地替换、保留用户配置并自动重载）或**后续再更新**。
@@ -64,7 +64,7 @@
 ## 快速安装
 
 1. 确保 Antigravity 启动参数包含 `--remote-debugging-port=9222`。
-2. 从 [Releases](https://github.com/trrrrrryg/antigravity-periodic-model-selector/releases) 下载最新 `antigravity-periodic-model-selector-v1.1.0.zip` 并解压，或克隆本仓库：
+2. 从 [Releases](https://github.com/trrrrrryg/antigravity-periodic-model-selector/releases) 下载最新 `antigravity-periodic-model-selector-v1.1.1.zip` 并解压，或克隆本仓库：
    ```bash
    git clone https://github.com/trrrrrryg/antigravity-periodic-model-selector.git ~/.gemini/config/plugins/antigravity-periodic-model-selector
    agy plugin validate ~/.gemini/config/plugins/antigravity-periodic-model-selector

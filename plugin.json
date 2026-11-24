@@ -1,7 +1,7 @@
 {
   "name": "antigravity-periodic-model-selector",
   "displayName": "Periodic Model Selector",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "将对话框模型选择器顶部的元素命名模型升级为可扩展的 118 号元素周期表交互区，支持悬停放大、思考强度选择、订阅分级校验、粒子消散重排动效以及启动自动查新与一键更新。",
   "logo": "assets/logo.svg",
   "author": {
